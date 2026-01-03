@@ -20,21 +20,18 @@
 
         #availability-summary { background: var(--white); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 1.5rem; border: 1px solid #ddd; font-weight: bold; color: var(--thfc-blue); }
 
-        /* Klikkbare bilder (Mindre størrelse) */
         .view-images { display: flex; gap: 15px; justify-content: center; margin-bottom: 2rem; }
         .view-card { background: white; padding: 8px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; width: 140px; cursor: pointer; transition: transform 0.2s; }
         .view-card:hover { transform: scale(1.05); }
         .view-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; display: block; margin-bottom: 5px; background: #ccc; }
         .view-card small { font-size: 0.75rem; color: #555; display: block; line-height: 1.2; }
 
-        /* Lightbox (Forstørrelse av bilde) */
         #lightbox { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; cursor: pointer; }
         #lightbox img { max-width: 90%; max-height: 80%; border: 3px solid white; border-radius: 4px; }
 
         .terms-box { background: #fff; border: 2px solid var(--accent-gold); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
         .terms-box h2 { color: var(--thfc-blue); margin-top: 0; font-size: 1.4rem; }
         .terms-box ul { padding-left: 20px; margin-bottom: 15px; }
-        .terms-box li { margin-bottom: 8px; }
         .highlight-text { font-weight: bold; color: var(--warning-red); }
         .footnote { font-size: 0.85rem; color: #666; border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; font-style: italic; }
         .btn-membership { display: inline-block; background: var(--thfc-blue); color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; }
@@ -46,7 +43,7 @@
         
         table { width: 100%; border-collapse: collapse; }
         td { padding: 12px 20px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        .price { font-weight: 800; }
+        .price { font-weight: 800; color: var(--thfc-blue); }
         
         .status-badge { font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; }
         .status-ledig { background: #e8f5e9; color: #28a745; }
@@ -91,12 +88,11 @@
         <h2>Viktig informasjon & vilkår</h2>
         <ul>
             <li><strong>Krav om medlemskap:</strong> Alle som skal ha billett må være <strong>One Hotspur medlem</strong>.</li>
-            <li><strong>Januar-salg:</strong> Koster vanligvis £45 pr. sesong, men er <span class="highlight-text">nå på 50% rabatt!</span> (£22.50).</li>
-            <li><strong>Overføring:</strong> Jeg trenger <strong>fullt navn</strong> og <strong>CRN*</strong> på alle som skal ha billett.</li>
-            <li><strong>Garanti:</strong> Jeg anbefaler ett CRN per billett for å garantere overføring.</li>
+            <li><strong>Januar-salg:</strong> Vanligvis £45 pr. sesong, men <span class="highlight-text">nå på 50% rabatt!</span> (£22.50).</li>
+            <li><strong>Overføring:</strong> Jeg trenger <strong>fullt navn</strong> og <strong>CRN*</strong> for hver billett.</li>
         </ul>
         <a href="https://www.tottenhamhotspur.com/fans/membership/one-hotspur/" target="_blank" class="btn-membership">Kjøp medlemskap her →</a>
-        <div class="footnote">*CRN (Client Reference Number): Ditt unike kundenummer du får ved innmelding.</div>
+        <div class="footnote">*CRN (Client Reference Number): Ditt unike kundenummer fra klubben.</div>
     </div>
 
     <div id="loading">Henter oppdatert kampprogram...</div>
@@ -113,7 +109,7 @@
     </div>
 </div>
 
-<footer><p>COYS | 2026</p></footer>
+<footer><p>COYS | Automatisk prisoppdatering</p></footer>
 
 <script>
     const SPREADSHEET_ID = '1vFUgq4p-UM6v6zPMHx1sshZunqC-We3VVYb0H_rhIhM'; 
@@ -124,10 +120,17 @@
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Funksjon for Lightbox
     function openLightbox(src) {
         document.getElementById('lightbox-img').src = src;
         document.getElementById('lightbox').style.display = 'flex';
+    }
+
+    // Funksjon for å runde OPP til nærmeste 50
+    function roundUpTo50(value) {
+        // Fjerner alt som ikke er tall (f.eks "kr", ",-", mellomrom)
+        let num = parseFloat(value.toString().replace(/[^\d.]/g, ''));
+        if (isNaN(num)) return value; // Returner original tekst hvis det ikke er et tall
+        return Math.ceil(num / 50) * 50;
     }
 
     fetch(url)
@@ -159,8 +162,11 @@
 
                 const datoVisning = row.c[1] ? (row.c[1].f || row.c[1].v) : "";
                 const sete = row.c[2] ? (row.c[2].f || row.c[2].v) : "";
-                const pris = row.c[3] ? (row.c[3].f || row.c[3].v) : "0";
+                const rawPris = row.c[3] ? (row.c[3].f || row.c[3].v) : "0";
                 const status = row.c[4] ? (row.c[4].f || row.c[4].v) : "Ledig";
+
+                // Bruker avrundingsfunksjonen på prisen
+                const pris = roundUpTo50(rawPris);
 
                 if (status.toLowerCase().includes('ledig')) totalAvailable++;
 
