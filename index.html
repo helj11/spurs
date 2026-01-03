@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spurs Tickets | Live Oversikt</title>
+    <style>
+        :root {
+            --thfc-blue: #132257;
+            --thfc-silver: #f3f3f3;
+            --white: #ffffff;
+            --accent-gold: #b39454;
+            --warning-red: #d32f2f;
+        }
+
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--thfc-silver); margin: 0; padding: 0; color: #333; }
+        header { background-color: var(--thfc-blue); color: white; padding: 2.5rem 1rem; text-align: center; border-bottom: 5px solid var(--accent-gold); }
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+        .view-images { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 2rem; }
+        .view-card { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .view-card img { width: 100%; height: auto; border-radius: 4px; display: block; margin-bottom: 10px; background: #ccc; }
+
+        .terms-box { background: #fff; border: 2px solid var(--accent-gold); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+        .terms-box h2 { color: var(--thfc-blue); margin-top: 0; font-size: 1.4rem; }
+        .terms-box ul { padding-left: 20px; }
+        .highlight-text { font-weight: bold; color: var(--warning-red); }
+        .footnote { font-size: 0.85rem; color: #666; border-top: 1px solid #eee; padding-top: 10px; margin-top: 15px; font-style: italic; }
+        .btn-membership { display: inline-block; background: var(--thfc-blue); color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px; }
+
+        .match-card { background: white; margin-bottom: 25px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 6px solid var(--thfc-blue); }
+        .match-info { padding: 15px 20px; background: #f8f8f8; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
+        .match-info h3 { margin: 0; font-size: 1.2rem; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 15px 20px; border-bottom: 1px solid #eee; }
+        .price { font-weight: 800; font-size: 1.1rem; }
+        
+        .status-badge { font-size: 0.75rem; font-weight: bold; padding: 5px 12px; border-radius: 4px; text-transform: uppercase; }
+        .status-ledig { background: #e8f5e9; color: #28a745; }
+        .status-solgt { background: #ffebee; color: #d32f2f; text-decoration: line-through; opacity: 0.6; }
+
+        #loading { text-align: center; padding: 40px; font-style: italic; color: #666; }
+        .contact-box { background: white; padding: 2.5rem; text-align: center; border-radius: 12px; margin-top: 3rem; border: 1px solid #ddd; }
+        .btn-contact { display: inline-block; padding: 14px 28px; margin: 8px; text-decoration: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; }
+        .messenger { background: #0084ff; }
+        .twitter { background: #000; }
+        
+        footer { text-align: center; padding: 3rem; color: #888; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Tottenham Hotspur Tickets</h1>
+    <p>Live Billettoversikt 2025/2026</p>
+</header>
+
+<div class="container">
+
+    <div class="view-images">
+        <div class="view-card">
+            <img src="256.jpg" alt="Utsikt Area 256">
+            <small>Utsikt fra Area 256</small>
+        </div>
+        <div class="view-card">
+            <img src="451.jpg" alt="Utsikt Area 451">
+            <small>Utsikt fra Area 451</small>
+        </div>
+    </div>
+
+    <div class="terms-box">
+        <h2>Viktig informasjon & vilkår</h2>
+        <ul>
+            <li><strong>Krav om medlemskap:</strong> Alle må ha aktivt <strong>One Hotspur Medlemskap</strong>.</li>
+            <li><strong>Januar-tilbud:</strong> Akkurat nå <span class="highlight-text">50% rabatt</span> på medlemskap!</li>
+            <li><strong>Nødvendig info:</strong> Jeg trenger fullt navn og <strong>CRN*</strong> for overføring.</li>
+            <li><strong>Overføring:</strong> Ett CRN per billett anbefales for garantert overføring.</li>
+        </ul>
+        <div class="footnote">*CRN: Ditt kundenummer fra klubben.</div>
+        <a href="https://www.tottenhamhotspur.com/fans/membership/one-hotspur/" target="_blank" class="btn-membership">Kjøp medlemskap her →</a>
+    </div>
+
+    <div id="loading">Henter billetter fra Google Sheets...</div>
+    <div id="tickets-container"></div>
+
+    <div class="contact-box">
+        <h3>Interessert? Kontakt meg her:</h3>
+        <a href="https://m.me/DITT_BRUKERNAVN" class="btn-contact messenger">Messenger</a>
+        <a href="https://twitter.com/DITT_BRUKERNAVN" class="btn-contact twitter">Twitter / X</a>
+    </div>
+</div>
+
+<footer><p>COYS | Live oppdatert</p></footer>
+
+<script>
+    // --- LIM INN DIN ID HER ---
+    const SPREADSHEET_ID = '1vFUgq4p-UM6v6zPMHx1sshZunqC-We3VVYb0H_rhIhM'; 
+    // --------------------------
+
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+
+    fetch(url)
+        .then(res => {
+            if (!res.ok) throw new Error("Google Sheets er utilgjengelig");
+            return res.text();
+        })
+        .then(data => {
+            const json = JSON.parse(data.substr(47).slice(0, -2));
+            const rows = json.table.rows;
+            const container = document.getElementById('tickets-container');
+            document.getElementById('loading').style.display = 'none';
+
+            let currentMatch = "";
+            let html = "";
+
+            rows.forEach((row, index) => {
+                if (index === 0) return; 
+
+                const kamp = row.c[0] ? (row.c[0].f || row.c[0].v) : "";
+                const dato = row.c[1] ? (row.c[1].f || row.c[1].v) : "";
+                const sete = row.c[2] ? (row.c[2].f || row.c[2].v) : "";
+                const pris = row.c[3] ? (row.c[3].f || row.c[3].v) : "0";
+                const status = row.c[4] ? (row.c[4].f || row.c[4].v) : "Ledig";
+
+                if (!kamp) return;
+
+                if (kamp !== currentMatch) {
+                    if (currentMatch !== "") html += `</table></div>`;
+                    currentMatch = kamp;
+                    html += `
+                        <div class="match-card">
+                            <div class="match-info"><h3>vs ${kamp}</h3> <span>${dato}</span></div>
+                            <table>`;
+                }
+
+                const isSold = status.toLowerCase().includes('solgt');
+                const statusClass = isSold ? 'status-solgt' : 'status-ledig';
+                
+                html += `
+                    <tr>
+                        <td>${sete}</td>
+                        <td class="price">${pris},-</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                    </tr>`;
+            });
+
+            html += `</table></div>`;
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById('loading').innerHTML = 
+                "<div style='color:red; padding:20px;'><strong>FEIL:</strong> Kunne ikke hente data. Sjekk at ID er riktig og at du har valgt 'Publiser på nettet' i Sheets.</div>";
+        });
+</script>
+
+</body>
+</html>
